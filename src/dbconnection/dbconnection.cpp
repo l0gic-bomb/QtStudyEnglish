@@ -1,125 +1,84 @@
 #include "dbconnection.h"
 #include "ui_dbconnection.h"
 
+#include <QFileDialog>
+
 #include <QDebug>
-#include <QUuid>
-#include <QFile>
 
-#include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlRecord>
-
-#include <QFileInfo>
-#include <QDir>
-
-#include "src/dbconnection/connectioneditdialog.h"
-#include "src/dbconnection/connectiondelegate.h"
 
 DBConnection::DBConnection(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::DBConnection)
+    QDialog(parent), ui(new Ui::DBConnection)
 {
     ui->setupUi(this);
 
-    ui->listView->setItemDelegate(new ConnectionDelegate(this));
+    _state = false;
 
-    _modelConnection = new DBConnectionModel(this);
-    ui->listView->setModel(_modelConnection);
-
-    DBDesc* desc = new DBDesc();
-    desc->_host = int(100);
-    desc->_userName = "";
-    desc->_password = "";
-    desc->_dbName   = "C:\\Users\\Alexey\\Documents\\QtStudyEnglish\\db\\qtstudyenglish.sqlite";
-    desc->_type     = "QSQLITE";
-    desc->_title    = "Соединение по умолчанию";
-    _modelConnection->addConnection(desc);
-
-    loadDefaultConnection();
-
-    connect(ui->btn_add, &QToolButton::clicked, this, &DBConnection::slAddConnection);
+    connect(ui->btn_selectdb, &QToolButton::clicked,     this, &DBConnection::slSelectFileDB);
+    connect(ui->btn_accept,   &QAbstractButton::clicked, this, &DBConnection::slAcceptChanges);
+    connect(ui->btn_cancel,   &QAbstractButton::clicked, this, &DBConnection::slCancel);
 }
 
 DBConnection::~DBConnection()
 {
     delete ui;
-    delete _modelConnection;
 }
 
-DBConnection::ConnectionResult DBConnection::connectDB()
+DBConnection& DBConnection::instance()
 {
-    loadDefaultConnection();
-
-    if (_currentConnection == nullptr) {
-        qDebug() << "Не указано подключение";
-        return DBConnection::Error;
-    }
-
-    QString connName      = QUuid::createUuid().toString();
-    QSqlDatabase database = QSqlDatabase::addDatabase(_currentConnection->_type, connName);
-
-    database.setHostName(_currentConnection->_host);
-    database.setPort(_currentConnection->_port);
-    database.setUserName(_currentConnection->_userName);
-    database.setPassword(_currentConnection->_password);
-    database.setDatabaseName(_currentConnection->_dbName);
-
-    if (_currentConnection->_type == "QSQLITE")
-    {
-        QFile file(_currentConnection->_dbName);
-        if (!file.exists()) {
-            QFileInfo fileInfo(_currentConnection->_dbName);
-
-        }
-
-    }
-
-
-
-
+    static DBConnection instance;
+    return instance;
 }
 
-void DBConnection::loadDefaultConnection()
-{    
-    DataConnection* dataConnection = DataConnection::instance();
-
-    if (dataConnection->dbType().isEmpty())
-        return;
-    else if ((dataConnection->dbType() == "QSQLITE" && dataConnection->databaseName().isEmpty()))
+void DBConnection::connectDB()
+{
+    _database = QSqlDatabase::addDatabase("QSQLITE");
+    if (_path.isEmpty())
         return;
 
-    DBDesc* desc = new DBDesc();
+    _database.setDatabaseName(_path);
 
-    desc->_host     = dataConnection->host();
-    desc->_port     = 5432;
-    desc->_userName = dataConnection->userName();
-    desc->_password = dataConnection->password();
-    desc->_dbName   = dataConnection->databaseName();
-    desc->_type     = dataConnection->dbType();
-    desc->_flags    = DBDesc::TypeConnection::NoFlag;
-    desc->_title = "Соединение не по умолчанию";
-
-    _modelConnection->addConnection(desc);
-}
-
-void DBConnection::slAddConnection()
-{
-    ConnectionEditDialog* edit = new ConnectionEditDialog(this);
-    QList<DBDesc*> list = edit->getNewConnection();
-    foreach(DBDesc* desc, list)
-        _modelConnection->addConnection(desc);
-
-    if (_modelConnection->rowCount() == 1) {
-        QModelIndex index = _modelConnection->index(0, 0);
-        _modelConnection->getConnection(index)->_flags.setFlag(DBDesc::TypeConnection::DefaultFlag);
-        emit _modelConnection->dataChanged(index,index);
+    if (!_database.open()) {
+        qDebug() << "Не удалось подключиться";
+        _state = false;
+    } else {
+        qDebug() << "Подключение успешно";
+        _state = true;
     }
-
-    delete edit;
 }
 
-void DBConnection::slDeleteConnection()
+
+bool DBConnection::getState() const
 {
-
+    return _state;
 }
+
+QSqlDatabase DBConnection::getDatabase() const
+{
+    return _database;
+}
+
+void DBConnection::slSelectFileDB()
+{
+    if (ui->le_path->text().isEmpty()) {
+        QString path = QFileDialog::getOpenFileName(this,
+                                                    "Выбор базы данных",
+                                                    QString() ,
+                                                    "Файл БД SQLite (*.sqlite);;Все файлы(*)",
+                                                    nullptr);
+        ui->le_path->setText(path);
+        _path = path;
+    } else
+        ui->le_path->setText(_path);
+}
+
+void DBConnection::slAcceptChanges()
+{
+    connectDB();
+}
+
+void DBConnection::slCancel()
+{
+    this->close();
+}
+
 

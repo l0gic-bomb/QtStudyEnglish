@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "dbconnection/dbconnection.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -8,14 +8,35 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    connect(ui->btn_connection, &QToolButton::clicked, [=](){
-        DBConnection dbConnection(this);
-        dbConnection.exec();
-    });
+    _connection = new DBConnection();
+
+    connect(ui->btn_connection, &QToolButton::clicked, this, &MainWindow::slConnectionDB);
+    connect(ui->toolButton_4, &QToolButton::clicked, this, &MainWindow::slRemoveAfterThisSlot);
 
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete  _connection;
+}
+
+void MainWindow::slConnectionDB()
+{
+    _connection->exec();
+}
+
+void MainWindow::slRemoveAfterThisSlot()
+{
+    if (_connection->getState()) {
+        QSqlQuery _lastQuery(_connection->getDatabase());
+        if (!_lastQuery.exec("select * from type_word")) {
+            qDebug() << "123";
+        }
+
+        while(_lastQuery.next()) {
+            qDebug() << _lastQuery.record();
+        }
+
+    }
 }

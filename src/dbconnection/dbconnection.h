@@ -2,9 +2,7 @@
 #define DBCONNECTION_H
 
 #include <QDialog>
-
-#include "src/dbconnection/dbconnectionmodel.h"
-#include "src/dbconnection/dataconnection.h"
+#include <QtSql>
 
 namespace Ui {
 class DBConnection;
@@ -22,27 +20,22 @@ public:
     explicit DBConnection(QWidget *parent = nullptr);
     ~DBConnection();
 
-    enum ConnectionResult
-    {
-        Okay = 0,                 ///< Успешное подключение
-        Error = 1,                ///< Ошибка подключения
-        SQLitePathNotExists = 2   ///< Не удается создать файл БД, так как путь не существует
-    };
-    Q_ENUM(ConnectionResult);
+    static DBConnection& instance();
 
-    ConnectionResult connectDB();
-    void loadDefaultConnection();
-
+    void connectDB();
+    bool getState() const;
+    QSqlDatabase getDatabase() const;
 
 public slots:
-    void slAddConnection();
-    void slDeleteConnection();
-
+    void slSelectFileDB();
+    void slAcceptChanges();
+    void slCancel();
 
 private:
     Ui::DBConnection  *ui;
-    DBConnectionModel *_modelConnection;
-    DBDesc* _currentConnection;
+    QString _path;
+    bool _state;
+    QSqlDatabase _database;
 
 };
 
