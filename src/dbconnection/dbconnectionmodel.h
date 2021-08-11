@@ -8,6 +8,7 @@ struct DBConnectionDescription {
         DefaultFlag,
         NoFlag
     };
+    Q_DECLARE_FLAGS(QFlags, TypeConnection)
 
     QString           _type;
     QString           _host;
@@ -17,7 +18,7 @@ struct DBConnectionDescription {
     QString           _password;
     QString           _title;
 
-    TypeConnection    _flags;
+    QFlags   _flags;
 
 };
 

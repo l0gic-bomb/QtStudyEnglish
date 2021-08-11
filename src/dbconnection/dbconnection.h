@@ -10,6 +10,10 @@ namespace Ui {
 class DBConnection;
 }
 
+class SettingPath {
+
+};
+
 class DBConnection : public QDialog
 {
     Q_OBJECT
@@ -20,19 +24,20 @@ public:
 
     enum ConnectionResult
     {
-        Okay = 0,                   ///< Успешное подключение
+        Okay = 0,                 ///< Успешное подключение
         Error = 1,                ///< Ошибка подключения
         SQLitePathNotExists = 2   ///< Не удается создать файл БД, так как путь не существует
     };
     Q_ENUM(ConnectionResult);
 
     ConnectionResult connectDB();
-
     void loadDefaultConnection();
 
 
 public slots:
     void slAddConnection();
+    void slDeleteConnection();
+
 
 private:
     Ui::DBConnection  *ui;

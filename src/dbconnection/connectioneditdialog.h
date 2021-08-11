@@ -22,6 +22,7 @@ public:
 public slots:
     void slReject();
     void slAccept();
+    void slSelectionSlot();
 
 private:
     bool checkResultConn();

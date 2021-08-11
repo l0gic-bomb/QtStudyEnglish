@@ -48,7 +48,7 @@ public:
 private:
     explicit DataConnection(QObject *parent = nullptr);
     static DataConnection* _instance;
-    ConnectionParams*      _params;
+    ConnectionParams* _params;
 };
 
 

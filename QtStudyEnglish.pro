@@ -7,6 +7,7 @@ CONFIG += c++17
 DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
+    src/dbconnection/connectiondelegate.cpp \
     src/dbconnection/connectioneditdialog.cpp \
     src/dbconnection/dataconnection.cpp \
     src/dbconnection/dbconnection.cpp \
@@ -15,6 +16,7 @@ SOURCES += \
     src/mainwindow.cpp
 
 HEADERS += \
+    src/dbconnection/connectiondelegate.h \
     src/dbconnection/connectioneditdialog.h \
     src/dbconnection/dataconnection.h \
     src/dbconnection/dbconnection.h \

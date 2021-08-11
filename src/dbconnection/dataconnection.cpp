@@ -17,6 +17,17 @@ DataConnection* DataConnection::_instance = nullptr;
 
 DataConnection::DataConnection(QObject *parent) : QObject(parent)
 {
+    _params = new ConnectionParams;
+    _params->_defaultPort = 5432;
+    _params->_defaultHost = "localhost";
+    _params->_defaultDbType = "QSQLITE";
+    _params->_defaultDbName = "123";
+
+    _params->_port   = _params->_defaultPort;
+    _params->_host   = _params->_defaultHost;
+    _params->_dbType = _params->_defaultDbType;
+    _params->_dbName = _params->_defaultDbName;
+
 }
 
 DataConnection::~DataConnection()
@@ -89,5 +100,5 @@ void DataConnection::loadSettings()
 
 QString DataConnection::errorText()
 {
-
+    return QString();
 }

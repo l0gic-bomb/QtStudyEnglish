@@ -2,6 +2,7 @@
 #include "ui_connectioneditdialog.h"
 
 #include <QDebug>
+#include <QFileDialog>
 
 ConnectionEditDialog::ConnectionEditDialog(QWidget *parent) :
     QDialog(parent),
@@ -9,8 +10,11 @@ ConnectionEditDialog::ConnectionEditDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->btn_cancel, &QAbstractButton::clicked, this, &ConnectionEditDialog::slReject);
-    connect(ui->btn_ok,     &QAbstractButton::clicked, this, &ConnectionEditDialog::slAccept);
+    ui->sb_port->setValue(5432);
+
+    connect(ui->btn_cancel,   &QAbstractButton::clicked, this, &ConnectionEditDialog::slReject);
+    connect(ui->btn_ok,       &QAbstractButton::clicked, this, &ConnectionEditDialog::slAccept);
+    connect(ui->btn_connect,  &QAbstractButton::clicked, this, &ConnectionEditDialog::slSelectionSlot);
 }
 
 ConnectionEditDialog::~ConnectionEditDialog()
@@ -23,8 +27,8 @@ QList<DBDesc *> ConnectionEditDialog::getNewConnection()
     if (exec() != Accepted)
         return QList<DBDesc*>();
 
-    QString typeDB = ui->cb_type->currentData().toString();
-    if (typeDB == "SQLITE") {
+    QString typeDB = ui->cb_type->currentText();
+    if (typeDB == "QSQLITE") {
         DBDesc* desc = new DBDesc();
 
         desc->_type     = typeDB;
@@ -48,12 +52,12 @@ void ConnectionEditDialog::slReject()
 
 void ConnectionEditDialog::slAccept()
 {
-    if (ui->le_filedb->text().isEmpty()) {
+    if (ui->le_nameconn->text().isEmpty()) {
         qDebug() << "Не указано имя подключения";
         return;
     }
 
-    QString currentTypeDB = ui->cb_type->currentData().toString();
+    QString currentTypeDB = ui->cb_type->currentText();
     if (currentTypeDB == "QSQLITE") {
         if (!checkResultConn())
             return;
@@ -62,6 +66,13 @@ void ConnectionEditDialog::slAccept()
 
     return QDialog::accept();
 }
+
+void ConnectionEditDialog::slSelectionSlot()
+{
+    QString file = QFileDialog::getSaveFileName(this, "Выбор базы данных", QString(), "Файл БД SQLite (*.sqlite);;Все файлы(*)", Q_NULLPTR);
+    ui->le_filedb->setText(file);
+}
+
 
 bool ConnectionEditDialog::checkResultConn()
 {
