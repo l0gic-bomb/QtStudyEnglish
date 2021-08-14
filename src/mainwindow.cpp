@@ -8,35 +8,47 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    _connection = new DBConnection();
+//    _connection = new DBConnection();
+    _leftModel  = new POS_Model(this);
+
+//    _connection->connectDB();
+    test();
+
+    ui->left_view->setModel(_leftModel);
+
+
+
+
 
     connect(ui->btn_connection, &QToolButton::clicked, this, &MainWindow::slConnectionDB);
-    connect(ui->toolButton_4, &QToolButton::clicked, this, &MainWindow::slRemoveAfterThisSlot);
+    connect(ui->btn_addword, &QToolButton::clicked, this, &MainWindow::slRemoveAfterThisSlot);
 
 }
+
+// C:/Users/Alexey/Documents/QtStudyEnglish/db/qtstudyenglish.sqlite
 
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete  _connection;
+//    delete  _connection;
+}
+
+void MainWindow::test()
+{
+    _leftModel->setColumns({{"part_of_speech", "Часть речи"}});
+    QString sql = "SELECT * FROM type_word ORDER BY id";
+    qDebug() << sql;
+    _leftModel->setQuery(sql);
 }
 
 void MainWindow::slConnectionDB()
 {
-    _connection->exec();
+//    _connection->exec();
 }
+
+
 
 void MainWindow::slRemoveAfterThisSlot()
 {
-    if (_connection->getState()) {
-        QSqlQuery _lastQuery(_connection->getDatabase());
-        if (!_lastQuery.exec("select * from type_word")) {
-            qDebug() << "123";
-        }
 
-        while(_lastQuery.next()) {
-            qDebug() << _lastQuery.record();
-        }
-
-    }
 }

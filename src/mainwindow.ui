@@ -88,7 +88,14 @@
     <item>
      <layout class="QHBoxLayout" name="hor_layout_view">
       <item>
-       <widget class="QTableView" name="tableView"/>
+       <widget class="QTableView" name="left_view">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QTableView" name="tableView_2"/>
@@ -96,7 +103,7 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QToolButton" name="toolButton_4">
+         <widget class="QToolButton" name="btn_addword">
           <property name="text">
            <string>Добавить</string>
           </property>

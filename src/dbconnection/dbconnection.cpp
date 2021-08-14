@@ -23,19 +23,13 @@ DBConnection::~DBConnection()
     delete ui;
 }
 
-DBConnection& DBConnection::instance()
-{
-    static DBConnection instance;
-    return instance;
-}
-
 void DBConnection::connectDB()
 {
     _database = QSqlDatabase::addDatabase("QSQLITE");
-    if (_path.isEmpty())
-        return;
+//    if (_path.isEmpty())
+//        return;
 
-    _database.setDatabaseName(_path);
+    _database.setDatabaseName("C:/Users/Alexey/Documents/QtStudyEnglish/db/qtstudyenglish.sqlite");
 
     if (!_database.open()) {
         qDebug() << "Не удалось подключиться";
@@ -47,12 +41,12 @@ void DBConnection::connectDB()
 }
 
 
-bool DBConnection::getState() const
+bool DBConnection::getState() const noexcept
 {
     return _state;
 }
 
-QSqlDatabase DBConnection::getDatabase() const
+QSqlDatabase DBConnection::getDatabase() const noexcept
 {
     return _database;
 }
@@ -74,6 +68,7 @@ void DBConnection::slSelectFileDB()
 void DBConnection::slAcceptChanges()
 {
     connectDB();
+
 }
 
 void DBConnection::slCancel()

@@ -8,10 +8,6 @@ namespace Ui {
 class DBConnection;
 }
 
-class SettingPath {
-
-};
-
 class DBConnection : public QDialog
 {
     Q_OBJECT
@@ -20,11 +16,9 @@ public:
     explicit DBConnection(QWidget *parent = nullptr);
     ~DBConnection();
 
-    static DBConnection& instance();
-
     void connectDB();
-    bool getState() const;
-    QSqlDatabase getDatabase() const;
+    bool getState() const noexcept;
+    QSqlDatabase getDatabase() const noexcept;
 
 public slots:
     void slSelectFileDB();
@@ -33,6 +27,7 @@ public slots:
 
 private:
     Ui::DBConnection  *ui;
+
     QString _path;
     bool _state;
     QSqlDatabase _database;

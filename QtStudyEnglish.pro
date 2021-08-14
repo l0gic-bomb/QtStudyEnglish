@@ -8,15 +8,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     src/dbconnection/dbconnection.cpp \
+    src/dbconnection/idbconnection.cpp \
     src/main.cpp \
-    src/mainwindow.cpp
+    src/mainwindow.cpp \
+    src/model/pos_model.cpp
 
 HEADERS += \
     src/dbconnection/dbconnection.h \
-    src/mainwindow.h
+    src/dbconnection/idbconnection.h \
+    src/mainwindow.h \
+    src/model/pos_model.h
 
 FORMS += \
     src/dbconnection/dbconnection.ui \
+    src/dbconnection/idbconnection.ui \
     src/mainwindow.ui
 
 # Default rules for deployment.
