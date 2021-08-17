@@ -17,7 +17,6 @@ public:
     ~DBConnection();
 
     void connectDB();
-    bool getState() const noexcept;
     QSqlDatabase getDatabase() const noexcept;
 
 public slots:
@@ -29,7 +28,6 @@ private:
     Ui::DBConnection  *ui;
 
     QString _path;
-    bool _state;
     QSqlDatabase _database;
 
 };

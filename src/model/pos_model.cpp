@@ -5,22 +5,75 @@
 #include <QSqlError>
 #include <QSqlRecord>
 
-POS_Model::POS_Model(QObject *parent)
-    : QAbstractItemModel(parent)
+
+POS_Model::POS_Model(QObject *parent) : QAbstractItemModel(parent)
 {
+
 }
 
-QVariant POS_Model::headerData(int section, Qt::Orientation orientation, int role) const
-{
-    if (orientation == Qt::Vertical)
-        return QVariant();
-    if (section >= columnCount())
-        return QVariant();
-    if (role != Qt::DisplayRole)
-        return QVariant();
 
-    QString field = _orderColumn.at(section);
-    return _titelesColumn.value(field);
+void POS_Model::setQuery(const QString &query) noexcept
+{
+    _query = query;
+    select();
+}
+
+void POS_Model::setColumns(const QList<QPair<QString, QString>>& columns) noexcept
+{
+    _columnOrder.clear();
+    _titles.clear();
+
+    for (int i = 0; i < columns.count(); ++i)
+    {
+        QPair<QString, QString> pair = columns.at(i);
+        _columnOrder.append(pair.first);
+        _titles.insert(pair.first, pair.second);
+    }
+}
+
+void POS_Model::setQuery(const QString &query, const QList<QPair<QString, QString> > &columns) noexcept
+{
+    setColumns(columns);
+    setQuery(query);
+}
+
+void POS_Model::select() noexcept
+{
+    beginResetModel();
+
+    _data.clear();
+
+    QSqlQuery query;
+
+    if (!query.exec(_query))
+            qDebug() << query.lastError().text();
+
+    while (query.next())
+    {
+        QSqlRecord record = query.record();
+        QVariantHash hash;
+        for (int i = 0; i < record.count(); ++i)
+            hash.insert(record.fieldName(i), record.value(i));
+        _data.append(hash);
+    }
+
+    endResetModel();
+}
+
+QVariantHash POS_Model::getRow(int row) const noexcept
+{
+    if (row >= _data.count())
+        return QVariantHash();
+
+    return _data.at(row);
+}
+
+void POS_Model::setContainer(const QList<QVariantHash> &container, const QList<QPair<QString, QString> > &columns) noexcept
+{
+    beginResetModel();
+    setColumns(columns);
+    _data = container;
+    endResetModel();
 }
 
 QModelIndex POS_Model::index(int row, int column, const QModelIndex &parent) const
@@ -42,7 +95,7 @@ QModelIndex POS_Model::parent(const QModelIndex &index) const
 
 int POS_Model::rowCount(const QModelIndex &parent) const
 {
-    if (!parent.isValid())
+    if (parent.isValid())
         return 0;
 
     return _data.count();
@@ -50,11 +103,8 @@ int POS_Model::rowCount(const QModelIndex &parent) const
 
 int POS_Model::columnCount(const QModelIndex &parent) const
 {
-    if (!parent.isValid())
-        return 0;
-
     Q_UNUSED(parent)
-    return _orderColumn.count();
+    return _columnOrder.count();
 }
 
 QVariant POS_Model::data(const QModelIndex &index, int role) const
@@ -63,21 +113,32 @@ QVariant POS_Model::data(const QModelIndex &index, int role) const
         return QVariant();
 
 
-    switch (role) {
+    switch (role)
+    {
     case Qt::DisplayRole:
     case Qt::EditRole:
+        return processingEditRole(index);
+    case Qt::UserRole:
     {
-        QString field = _orderColumn.at(index.column());
-        return  _data.at(index.row()).value(field);
-    }
-    case ModelRoles::DataRole:
-    {
-        QVariant value = getDataRow(index.row());
-        return value;
+        QVariant v = processingUserRole(index);
+        return processingUserRole(index);
     }
     default:
         return QVariant();
     }
+}
+
+QVariant POS_Model::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (orientation == Qt::Vertical)
+        return QVariant();
+    if (section >= columnCount())
+        return QVariant();
+    if (role != Qt::DisplayRole)
+        return QVariant();
+
+    QString field = _columnOrder.at(section);
+    return _titles.value(field);
 }
 
 Qt::ItemFlags POS_Model::flags(const QModelIndex &index) const
@@ -87,65 +148,13 @@ Qt::ItemFlags POS_Model::flags(const QModelIndex &index) const
     return QAbstractItemModel::flags(index) & ~Qt::ItemIsEditable;
 }
 
-QVariantHash POS_Model::getDataRow(const int &row) const noexcept
+QVariant POS_Model::processingEditRole(const QModelIndex &index) const noexcept
 {
-    if (row >= _data.count())
-        return QVariantHash();
-
-    return _data.at(row);
+    QString column = _columnOrder.at(index.column());
+    return  _data.at(index.row()).value(column);
 }
 
-void POS_Model::setQuery(const QString &query) noexcept
+QVariant POS_Model::processingUserRole(const QModelIndex &index) const noexcept
 {
-    _query = query;
-    select();
-}
-
-void POS_Model::setColumns(const columnList &columns) noexcept
-{
-    _orderColumn.clear();
-    _titelesColumn.clear();
-
-    for (auto column : columns) {
-        QPair<QString, QString> tmpPair = column;
-        _orderColumn.append(tmpPair.first);
-        _titelesColumn.insert(tmpPair.first, tmpPair.second);
-    }
-}
-
-void POS_Model::setQuery(const QString &query, const columnList &columns) noexcept
-{
-    setColumns(columns);
-    setQuery(query);
-}
-
-void POS_Model::select() noexcept
-{
-    beginResetModel();
-
-    _dataList.clear();
-
-    QSqlQuery query;
-
-    if (!query.exec(_query))
-        qDebug() << query.lastError().text();
-
-    while (query.next()) {
-        QSqlRecord record = query.record();
-        QVariantHash hash;
-        for (int i = 0; i < record.count(); ++i)
-            hash.insert(record.fieldName(i), record.value(i));
-        _dataList.append(hash);
-    }
-
-    QList<QVariantHash> rows = _dataList;
-    endResetModel();
-}
-
-void POS_Model::setDataList(const QList<QVariantHash> &dataList, const columnList &columns) noexcept
-{
-    beginResetModel();
-    setColumns(columns);
-    _dataList = dataList;
-    endResetModel();
+    return getRow(index.row());
 }

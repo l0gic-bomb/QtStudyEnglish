@@ -23,13 +23,17 @@ public:
 
 public slots:
     void slConnectionDB();
-    void slRemoveAfterThisSlot();
+    void slSelectionItem();
+
+signals:
+    void sgLoad();
 
 private:
     Ui::MainWindow *ui;
-//    DBConnection* _connection;
+    DBConnection* _connection;
 
-    POS_Model* _leftModel;
+    POS_Model* _TypeWordModel;
+    QSqlDatabase _database;
 
 
 };

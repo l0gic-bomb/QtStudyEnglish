@@ -11,8 +11,6 @@ DBConnection::DBConnection(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    _state = false;
-
     connect(ui->btn_selectdb, &QToolButton::clicked,     this, &DBConnection::slSelectFileDB);
     connect(ui->btn_accept,   &QAbstractButton::clicked, this, &DBConnection::slAcceptChanges);
     connect(ui->btn_cancel,   &QAbstractButton::clicked, this, &DBConnection::slCancel);
@@ -26,24 +24,12 @@ DBConnection::~DBConnection()
 void DBConnection::connectDB()
 {
     _database = QSqlDatabase::addDatabase("QSQLITE");
-//    if (_path.isEmpty())
-//        return;
+    _database.setDatabaseName(_path);
 
-    _database.setDatabaseName("C:/Users/Alexey/Documents/QtStudyEnglish/db/qtstudyenglish.sqlite");
-
-    if (!_database.open()) {
+    if (!_database.open())
         qDebug() << "Не удалось подключиться";
-        _state = false;
-    } else {
+    else
         qDebug() << "Подключение успешно";
-        _state = true;
-    }
-}
-
-
-bool DBConnection::getState() const noexcept
-{
-    return _state;
 }
 
 QSqlDatabase DBConnection::getDatabase() const noexcept
@@ -53,11 +39,12 @@ QSqlDatabase DBConnection::getDatabase() const noexcept
 
 void DBConnection::slSelectFileDB()
 {
-    if (ui->le_path->text().isEmpty()) {
+    _path = "D:\\git\\QtStudyEnglish\\db\\qtstudyenglish.sqlite";
+    if (_path.isEmpty()) {
         QString path = QFileDialog::getOpenFileName(this,
                                                     "Выбор базы данных",
                                                     QString() ,
-                                                    "Файл БД SQLite (*.sqlite);;Все файлы(*)",
+                                                    "Файл БД SQLite (*.sqlite)",
                                                     nullptr);
         ui->le_path->setText(path);
         _path = path;
@@ -68,7 +55,7 @@ void DBConnection::slSelectFileDB()
 void DBConnection::slAcceptChanges()
 {
     connectDB();
-
+    this->close();
 }
 
 void DBConnection::slCancel()

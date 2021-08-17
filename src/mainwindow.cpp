@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QSqlQueryModel>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -8,47 +10,34 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-//    _connection = new DBConnection();
-    _leftModel  = new POS_Model(this);
+    _connection = new DBConnection(this);
+    _TypeWordModel  = new POS_Model(this);
 
-//    _connection->connectDB();
-    test();
-
-    ui->left_view->setModel(_leftModel);
-
-
-
+    ui->pos_view->setModel(_TypeWordModel);
 
 
     connect(ui->btn_connection, &QToolButton::clicked, this, &MainWindow::slConnectionDB);
-    connect(ui->btn_addword, &QToolButton::clicked, this, &MainWindow::slRemoveAfterThisSlot);
-
+    connect(ui->pos_view->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::slSelectionItem);
 }
-
-// C:/Users/Alexey/Documents/QtStudyEnglish/db/qtstudyenglish.sqlite
 
 MainWindow::~MainWindow()
 {
     delete ui;
-//    delete  _connection;
 }
 
-void MainWindow::test()
-{
-    _leftModel->setColumns({{"part_of_speech", "Часть речи"}});
-    QString sql = "SELECT * FROM type_word ORDER BY id";
-    qDebug() << sql;
-    _leftModel->setQuery(sql);
-}
 
 void MainWindow::slConnectionDB()
 {
-//    _connection->exec();
+    if (!_connection->exec()) {
+        _TypeWordModel->setColumns({{"part_of_speech", "Часть речи"}});
+        QString sql = "SELECT * FROM type_word ORDER BY id";
+        qDebug() << sql;
+        _TypeWordModel->setQuery(sql);
+        ui->pos_view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    }
 }
 
-
-
-void MainWindow::slRemoveAfterThisSlot()
+void MainWindow::slSelectionItem()
 {
-
+//    QModelIndexList selectionIndexes = ui->pos_view->
 }

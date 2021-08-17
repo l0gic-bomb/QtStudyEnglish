@@ -12,35 +12,17 @@ class IDBConnection : public QDialog
     Q_OBJECT
 public:
 
-    /*!
-     * \brief Результат подключения к БД
-     */
-    enum ConnectionResult
+    enum Result
     {
-        crOK = 0,                   ///< Успешное подключение
-        crError = 1,                ///< Ошибка подключения
-        crSQLitePathNotExists = 2   ///< Не удается создать файл БД, так как путь не существует
+        OK = 0,
+        Error = 1,
+        PathNotExists = 2
     };
+    Q_ENUM(Result);
 
-
-    /*!
-     * \brief Подключение к выбранной ранее БД
-     * или использование подключения по умолчанию.
-     *
-     * Новое подключение заменяет подключение с идентификатором ""
-     *
-     * \return crOK - если подключение установлено
-     */
-    virtual ConnectionResult connectToDB() = 0;
-
-    /*!
-     * \brief Добавление файла БД SQLite
-     * \param database - путь к файлу БД
-     * \param title - Название подключения
-     * \param comment - примечание
-     */
-    virtual void    addConnectionSQLite(QString databasePath,
-                                        QString title) = 0;
+    virtual Result connectDB() = 0;
+    virtual void   addConnection(const QString& databasePath, const QString& title) = 0;
+    virtual bool   getState() const noexcept = 0;
 
     virtual int exec();
     virtual int exec(QWidget* parent);

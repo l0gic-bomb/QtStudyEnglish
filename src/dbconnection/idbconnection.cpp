@@ -1,7 +1,10 @@
 #include "idbconnection.h"
 #include "ui_idbconnection.h"
 
+#include "dbconnection.h"
 
+static QMetaObject::Connection autoDelSingleton;
+IDBConnection* IDBConnection::_self = Q_NULLPTR;
 
 IDBConnection::IDBConnection(QWidget *parent) :
     QDialog(parent)
@@ -10,14 +13,8 @@ IDBConnection::IDBConnection(QWidget *parent) :
 
 IDBConnection::~IDBConnection()
 {
+
 }
-
-
-static QMetaObject::Connection connAutoDelSingleton; // Соединение для удаления синглтона при закрытии программы
-
-
-IDBConnection* IDBConnection::_self = Q_NULLPTR;
-
 
 int IDBConnection::exec()
 {
@@ -35,9 +32,9 @@ IDBConnection *IDBConnection::instance()
 {
     if (!_self)
     {
-//        _self = new DBCon(QApplication::activeWindow());ss
-        if (!connAutoDelSingleton)
-            connAutoDelSingleton = connect(qApp, &QCoreApplication::aboutToQuit, deleteInstance);
+        _self = new DBConnection(QApplication::activeWindow());
+        if (!autoDelSingleton)
+            autoDelSingleton = connect(qApp, &QCoreApplication::aboutToQuit, deleteInstance);
     }
 
     return _self;
@@ -47,9 +44,4 @@ void IDBConnection::deleteInstance()
 {
     delete _self;
     _self = Q_NULLPTR;
-}
-
-IDBConnection::IDBManager(QWidget *parent) : QDialog (parent)
-{
-
 }
