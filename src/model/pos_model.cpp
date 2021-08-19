@@ -5,12 +5,9 @@
 #include <QSqlError>
 #include <QSqlRecord>
 
-
 POS_Model::POS_Model(QObject *parent) : QAbstractItemModel(parent)
 {
-
 }
-
 
 void POS_Model::setQuery(const QString &query) noexcept
 {
@@ -23,22 +20,16 @@ void POS_Model::setColumns(const QList<QPair<QString, QString>>& columns) noexce
     _columnOrder.clear();
     _titles.clear();
 
-    for (int i = 0; i < columns.count(); ++i)
-    {
+    for (int i = 0; i < columns.count(); ++i) {
         QPair<QString, QString> pair = columns.at(i);
         _columnOrder.append(pair.first);
         _titles.insert(pair.first, pair.second);
     }
 }
 
-void POS_Model::setQuery(const QString &query, const QList<QPair<QString, QString> > &columns) noexcept
-{
-    setColumns(columns);
-    setQuery(query);
-}
-
 void POS_Model::select() noexcept
 {
+    // Reset our model for new changes
     beginResetModel();
 
     _data.clear();
@@ -48,8 +39,8 @@ void POS_Model::select() noexcept
     if (!query.exec(_query))
             qDebug() << query.lastError().text();
 
-    while (query.next())
-    {
+    // work with data
+    while (query.next()) {
         QSqlRecord record = query.record();
         QVariantHash hash;
         for (int i = 0; i < record.count(); ++i)
@@ -60,7 +51,7 @@ void POS_Model::select() noexcept
     endResetModel();
 }
 
-QVariantHash POS_Model::getRow(int row) const noexcept
+QVariantHash POS_Model::getRow(const int& row) const noexcept
 {
     if (row >= _data.count())
         return QVariantHash();
@@ -68,7 +59,7 @@ QVariantHash POS_Model::getRow(int row) const noexcept
     return _data.at(row);
 }
 
-void POS_Model::setContainer(const QList<QVariantHash> &container, const QList<QPair<QString, QString> > &columns) noexcept
+void POS_Model::setContainer(const QList<QVariantHash> &container, const QList<QPair<QString, QString>>& columns) noexcept
 {
     beginResetModel();
     setColumns(columns);
@@ -113,16 +104,13 @@ QVariant POS_Model::data(const QModelIndex &index, int role) const
         return QVariant();
 
 
-    switch (role)
-    {
+    switch (role) {
     case Qt::DisplayRole:
+        return displayRole(index);
     case Qt::EditRole:
-        return processingEditRole(index);
+        return displayRole(index);
     case Qt::UserRole:
-    {
-        QVariant v = processingUserRole(index);
-        return processingUserRole(index);
-    }
+        return userRole(index);
     default:
         return QVariant();
     }
@@ -143,18 +131,17 @@ QVariant POS_Model::headerData(int section, Qt::Orientation orientation, int rol
 
 Qt::ItemFlags POS_Model::flags(const QModelIndex &index) const
 {
-    Qt::ItemFlags flags = QAbstractItemModel::flags(index);
-    flags &= ~Qt::ItemIsEditable;
-    return QAbstractItemModel::flags(index) & ~Qt::ItemIsEditable;
+    // block selectable more rows
+    return QAbstractItemModel::flags(index) & ~Qt::ItemIsSelectable;
 }
 
-QVariant POS_Model::processingEditRole(const QModelIndex &index) const noexcept
+QVariant POS_Model::displayRole(const QModelIndex &index) const noexcept
 {
     QString column = _columnOrder.at(index.column());
     return  _data.at(index.row()).value(column);
 }
 
-QVariant POS_Model::processingUserRole(const QModelIndex &index) const noexcept
+QVariant POS_Model::userRole(const QModelIndex &index) const noexcept
 {
     return getRow(index.row());
 }

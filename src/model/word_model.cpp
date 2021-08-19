@@ -1,46 +1,108 @@
 #include "word_model.h"
 
-Word_Model::Word_Model(QObject *parent)
-    : QAbstractItemModel(parent)
+#include <QSqlDatabase>
+#include <QSqlRecord>
+#include <QSqlQuery>
+
+#include <QDebug>
+
+const QString MARKER = "marker";
+
+Word_Model::Word_Model(QObject *parent) : POS_Model(parent)
 {
 }
 
-QVariant Word_Model::headerData(int section, Qt::Orientation orientation, int role) const
+void Word_Model::setTablesDesc(QList<TableDescription> &listDesc) noexcept
 {
-    // FIXME: Implement me!
+    beginResetModel();
+
+    _keyColumns.clear();
+    _editColumns.clear();
+    _listDesc.clear();
+
+    _listDesc = listDesc;
+
+    foreach (const TableDescription& desc, _listDesc) {
+        foreach (const QString& field, desc.keys)
+            _keyColumns.insert(field, desc.name);
+        foreach (const QString& field, desc.fields)
+            _editColumns.insert(field, desc.name);
+    }
+
+    endResetModel();
 }
 
-QModelIndex Word_Model::index(int row, int column, const QModelIndex &parent) const
+bool Word_Model::submitNewRows()
 {
-    // FIXME: Implement me!
+
 }
 
-QModelIndex Word_Model::parent(const QModelIndex &index) const
+bool Word_Model::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    // FIXME: Implement me!
+
 }
 
-int Word_Model::rowCount(const QModelIndex &parent) const
+Qt::ItemFlags Word_Model::flags(const QModelIndex &index) const
 {
-    if (!parent.isValid())
-        return 0;
+    QString column   = _columnOrder.at(index.column());
+    Qt::ItemFlags fl = POS_Model::flags(index);
 
-    // FIXME: Implement me!
+    if (_insertMode)  {
+        if (_data.at(index.row()).contains(MARKER))  {
+            if (_editColumns.contains(column) || _keyColumns.contains(column))
+                fl |= Qt::ItemIsEditable;
+            else
+                fl = fl & ~Qt::ItemIsEnabled;
+        }
+        else
+            fl = fl & ~Qt::ItemIsEnabled;
+    }
+    else {
+        if (_listDesc.length() != 0) {
+            if (_editColumns.contains(column))
+                fl |= Qt::ItemIsEditable;
+            else
+                fl = fl & ~Qt::ItemIsEditable;
+        }
+        else
+            fl = POS_Model::flags(index);
+    }
+
+
+    return  fl;
 }
 
-int Word_Model::columnCount(const QModelIndex &parent) const
+bool Word_Model::insertRows(int row, int count, const QModelIndex &parent)
 {
-    if (!parent.isValid())
-        return 0;
+    if (parent.isValid())
+        return false;
+    if (count != 1)
+        return false;
 
-    // FIXME: Implement me!
+    beginInsertRows(parent, row, row + count -1);
+    QVariantHash hash;
+    hash.insert(MARKER, QVariant());
+//    for (const TableDescription &desc : _listDesc)
+//    {
+//        QHashIterator<QString, QVariant> it (desc.defaultValues);
+//        while (it.hasNext())
+//        {
+//            it.next();
+//            hash.insert(it.key(), it.value());
+//        }
+//    }
+
+    _data.insert(row, hash);
+    _insertMode = true;
+    endInsertRows();
+
+
+    return true;
 }
 
-QVariant Word_Model::data(const QModelIndex &index, int role) const
+bool Word_Model::removeRows(int row, int count, const QModelIndex &parent)
 {
-    if (!index.isValid())
-        return QVariant();
 
-    // FIXME: Implement me!
-    return QVariant();
 }
+
+

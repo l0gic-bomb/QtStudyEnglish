@@ -39,7 +39,7 @@ QSqlDatabase DBConnection::getDatabase() const noexcept
 
 void DBConnection::slSelectFileDB()
 {
-    _path = "D:\\git\\QtStudyEnglish\\db\\qtstudyenglish.sqlite";
+    _path = "D:\\QtStudyEnglish\\db\\qtstudyenglish.sqlite";
     if (_path.isEmpty()) {
         QString path = QFileDialog::getOpenFileName(this,
                                                     "Выбор базы данных",

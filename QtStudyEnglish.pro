@@ -4,6 +4,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 
+
 SOURCES += \
     src/dbconnection/dbconnection.cpp \
     src/main.cpp \
