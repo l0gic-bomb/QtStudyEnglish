@@ -9,6 +9,7 @@ struct TableDescription
     QString name;
     QSet<QString> keys;
     QSet<QString> fields;
+    QVariantHash  defaultRow;
 };
 
 class Word_Model : public POS_Model

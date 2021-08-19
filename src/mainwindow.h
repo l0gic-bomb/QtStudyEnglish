@@ -31,9 +31,11 @@ signals:
 private:
     Ui::MainWindow *ui;
     DBConnection* _connection;
+    POS_Model*    _typeWordModel;
 
-    POS_Model* _TypeWordModel;
-    QSqlDatabase _database;
+    QList<long long> selectedIds();
+    QVariantHash getRecord(const QModelIndex& index);
+
 
 
 };

@@ -39,7 +39,32 @@ bool Word_Model::submitNewRows()
 
 bool Word_Model::setData(const QModelIndex &index, const QVariant &value, int role)
 {
+    if (!index.isValid())
+        return false;
+    if (index.row() >= _data.count())
+        return false;
+    if (role != Qt::EditRole)
+        return false;
+    QVariantHash hash = _data.value(index.row());
+    QString field = _columnOrder.value(index.column());
+    hash.insert(field, value);
 
+    if (!hash.contains(MARKER)) {
+        if (!updateValueInDB(hash, field))
+            return false;
+        _data.replace(index.row(), hash);
+        emit dataChanged(index, index, QVector <int>({Qt::EditRole,
+                                                      Qt::UserRole
+                                                     }));
+        return true;
+    }
+    else
+        _data.replace(index.row(), hash);
+
+    emit dataChanged(index, index, QVector <int>({Qt::EditRole,
+                                                  Qt::UserRole,
+                                                 }));
+    return false;
 }
 
 Qt::ItemFlags Word_Model::flags(const QModelIndex &index) const
@@ -79,18 +104,18 @@ bool Word_Model::insertRows(int row, int count, const QModelIndex &parent)
     if (count != 1)
         return false;
 
-    beginInsertRows(parent, row, row + count -1);
+    beginInsertRows(parent, row, row + count - 1);
+
     QVariantHash hash;
     hash.insert(MARKER, QVariant());
-//    for (const TableDescription &desc : _listDesc)
-//    {
-//        QHashIterator<QString, QVariant> it (desc.defaultValues);
-//        while (it.hasNext())
-//        {
-//            it.next();
-//            hash.insert(it.key(), it.value());
-//        }
-//    }
+
+    for (const TableDescription &desc : _listDesc) {
+        QHashIterator<QString, QVariant> it (desc.defaultRow);
+        while (it.hasNext()) {
+            it.next();
+            hash.insert(it.key(), it.value());
+        }
+    }
 
     _data.insert(row, hash);
     _insertMode = true;
@@ -102,7 +127,37 @@ bool Word_Model::insertRows(int row, int count, const QModelIndex &parent)
 
 bool Word_Model::removeRows(int row, int count, const QModelIndex &parent)
 {
+    if (parent.isValid())
+        return false;
+    if (count != 1)
+        return false;
 
+    beginRemoveRows(parent, row, row + count -1);
+    QVariantHash hash = _data.at(row);
+    if (_insertRowMode) {
+        if (hash.contains(MARKER))
+        {
+            _insertRowMode = false;
+            _container.removeAt(row);
+        }
+        else
+        {
+            endRemoveRows();
+            return false;
+        }
+    }
+    else
+    {
+        if (!removeRowFromDB(hash))
+        {
+            endRemoveRows();
+            return false;
+        }
+        _container.removeAt(row);
+    }
+    endRemoveRows();
+    emit dataChanged(index(0,0), index(_container.count() - 1, columnCount() - 1));
+    return  true;
 }
 
 
