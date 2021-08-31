@@ -48,6 +48,7 @@ void POS_Model::select() noexcept
         _data.append(hash);
     }
 
+    // Finish reseting our model
     endResetModel();
 }
 
@@ -131,7 +132,7 @@ QVariant POS_Model::headerData(int section, Qt::Orientation orientation, int rol
 
 Qt::ItemFlags POS_Model::flags(const QModelIndex &index) const
 {
-    // block selectable more rows
+    // block selectable more rows, only one row can be selectable
     return QAbstractItemModel::flags(index) & ~Qt::ItemIsSelectable;
 }
 

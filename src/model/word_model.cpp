@@ -12,7 +12,7 @@ Word_Model::Word_Model(QObject *parent) : POS_Model(parent)
 {
 }
 
-void Word_Model::setTablesDesc(QList<TableDescription> &listDesc) noexcept
+void Word_Model::setTablesDescriptions(QList<TableDescription> &listDesc) noexcept
 {
     beginResetModel();
 
@@ -34,7 +34,35 @@ void Word_Model::setTablesDesc(QList<TableDescription> &listDesc) noexcept
 
 bool Word_Model::submitNewRows()
 {
+    QSqlDatabase db = QSqlDatabase::database();
+    // start the transaction with db
+    db.transaction();
 
+    for (int i = 0; i < _data.size(); ++i) {
+        QVariantHash hash {_data.at(i)};
+        if (hash.contains(MARKER)) {
+            if (!writeNewRow(hash)) {
+                db.rollback();
+                return false;
+            }
+            _data[i] = hash;
+        }
+    }
+
+    // submit changes
+    db.commit();
+
+    _insertMode = true;
+    // send signal for changing data in model
+    for (int i = 0; i < _data.size(); ++i) {
+        QVariantHash hash {_data.at(i)};
+        emit dataChanged(index(i,0),
+                         index(i, columnCount() - 1),
+                         QVector<int>({Qt::DisplayRole,
+                                       Qt::EditRole}));
+    }
+
+    return true;
 }
 
 bool Word_Model::setData(const QModelIndex &index, const QVariant &value, int role)
@@ -45,26 +73,10 @@ bool Word_Model::setData(const QModelIndex &index, const QVariant &value, int ro
         return false;
     if (role != Qt::EditRole)
         return false;
+
     QVariantHash hash = _data.value(index.row());
     QString field = _columnOrder.value(index.column());
     hash.insert(field, value);
-
-    if (!hash.contains(MARKER)) {
-        if (!updateValueInDB(hash, field))
-            return false;
-        _data.replace(index.row(), hash);
-        emit dataChanged(index, index, QVector <int>({Qt::EditRole,
-                                                      Qt::UserRole
-                                                     }));
-        return true;
-    }
-    else
-        _data.replace(index.row(), hash);
-
-    emit dataChanged(index, index, QVector <int>({Qt::EditRole,
-                                                  Qt::UserRole,
-                                                 }));
-    return false;
 }
 
 Qt::ItemFlags Word_Model::flags(const QModelIndex &index) const
@@ -74,22 +86,23 @@ Qt::ItemFlags Word_Model::flags(const QModelIndex &index) const
 
     if (_insertMode)  {
         if (_data.at(index.row()).contains(MARKER))  {
+
             if (_editColumns.contains(column) || _keyColumns.contains(column))
                 fl |= Qt::ItemIsEditable;
             else
                 fl = fl & ~Qt::ItemIsEnabled;
-        }
-        else
+
+        } else
             fl = fl & ~Qt::ItemIsEnabled;
-    }
-    else {
+    } else {
         if (_listDesc.length() != 0) {
+
             if (_editColumns.contains(column))
                 fl |= Qt::ItemIsEditable;
             else
                 fl = fl & ~Qt::ItemIsEditable;
-        }
-        else
+
+        } else
             fl = POS_Model::flags(index);
     }
 
@@ -132,32 +145,135 @@ bool Word_Model::removeRows(int row, int count, const QModelIndex &parent)
     if (count != 1)
         return false;
 
-    beginRemoveRows(parent, row, row + count -1);
+    beginRemoveRows(parent, row, row + count - 1);
     QVariantHash hash = _data.at(row);
-    if (_insertRowMode) {
-        if (hash.contains(MARKER))
-        {
-            _insertRowMode = false;
-            _container.removeAt(row);
-        }
-        else
-        {
+    if (_insertMode) {
+        if (hash.contains(MARKER)) {
+            _insertMode = false;
+            _data.removeAt(row);
+        } else {
             endRemoveRows();
             return false;
         }
-    }
-    else
-    {
-        if (!removeRowFromDB(hash))
-        {
+    } else {
+        if (!removeRow(hash)) {
             endRemoveRows();
             return false;
         }
-        _container.removeAt(row);
+        _data.removeAt(row);
     }
+
     endRemoveRows();
-    emit dataChanged(index(0,0), index(_container.count() - 1, columnCount() - 1));
+    emit dataChanged(index(0,0), index(_data.count() - 1, columnCount() - 1));
     return  true;
+}
+
+QVariant Word_Model::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid())
+        return QVariant();
+
+    switch (role) {
+    // add role
+    default:
+        return POS_Model::data(index, role);
+    }
+}
+
+bool Word_Model::writeNewRow(QVariantHash &hash)
+{
+    QString sqlInsert  = "INSERT INTO %tablename% (%columns%) VALUES (%values%)";
+    for (int i = 0; i < _listDesc.size(); ++i) {
+        TableDescription currentDesc = _listDesc.at(i);
+
+        const QStringList columnsList  = currentDesc.fields.unite(currentDesc.keys).toList();
+        const QString allColumnsString = columnsList.join(",");
+
+        QString values;
+        for (int j = 0; j < columnsList.size(); ++j) {
+            if (j == columnsList.size() - 1) {
+                values.append(":" + columnsList.at(j));
+                continue;
+            }
+            values.append(":" + columnsList.at(j) + ",");
+        }
+
+
+        sqlInsert.replace("%tablename%", currentDesc.name);
+        sqlInsert.replace("%columns%",   allColumnsString);
+        sqlInsert.replace("%values%",    values);
+
+        QSqlQuery query;
+        query.prepare(sqlInsert);
+        for (const QString& column: columnsList)
+            query.bindValue((":") + column, hash.value(column));
+
+        if (!query.exec()) {
+            // add error
+            return false;
+        }
+
+
+        const QString &lastId = query.lastInsertId().toString();
+        sqlInsert = QString("SELECT %1 FROM %2 WHERE rowid = :rowid").arg(allColumnsString).arg(currentDesc.name);
+        if (sqlInsert.isEmpty()) {
+            // add error
+            return false;
+        }
+
+        query.prepare(sqlInsert);
+        query.bindValue(":rowid", lastId);
+
+        query.next();
+        QSqlRecord record = query.record();
+        for (int i = 0; i < record.count(); ++i)
+            hash.insert(record.fieldName(i), record.value(i));
+
+
+    }
+
+    return true;
+}
+
+bool Word_Model::removeRow(QVariantHash &hash)
+{
+    if (_listDesc.size() == 0)
+        return false;
+
+    QSqlDatabase db = QSqlDatabase::database();
+    db.transaction();
+
+    for (int i = 0; i < _listDesc.size(); ++i) {
+        TableDescription desc = _listDesc.at(i);
+
+        if (desc.name.isEmpty())
+            continue;
+        if (desc.keys.isEmpty())
+            continue;
+
+        QString strQuery = QString("DELETE FROM %table% WHERE %where%");
+        strQuery.replace("%table%", desc.name);
+
+        QStringList strList;
+        for (const QString& key: desc.keys)
+            strList.append(key + "=:" + key);
+
+        strQuery.replace("%where%", strList.join(" AND "));
+
+        QSqlQuery query;
+        query.prepare(strQuery);
+        for (const QString& key : desc.keys)
+            query.bindValue(":" + key, strList.join(key));
+
+        if (!query.exec()) {
+            // add error
+            db.rollback();
+            return false;
+        }
+    }
+
+    db.commit();
+    return true;
 }
 
 
