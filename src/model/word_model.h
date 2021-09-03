@@ -4,6 +4,17 @@
 #include "pos_model.h"
 #include <QSet>
 
+/*!
+  \brief   Модель для неизменяемых данных (частей речи)
+  \author  Krymov A.O.
+  \version 1.0
+  \date    18.08.2021
+
+  Модель предназначена для чтения и записи данных из
+  таблицы БД
+
+*/
+
 struct TableDescription
 {
     QString name;
@@ -38,6 +49,7 @@ private:
 
     bool writeNewRow(QVariantHash& hash);
     bool removeRow(QVariantHash& hash);
+    bool updateRow(const QVariantHash& row, const QString& field);
 
 
 };

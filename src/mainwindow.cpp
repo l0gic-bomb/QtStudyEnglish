@@ -1,20 +1,21 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <QSqlQueryModel>
-#include <QSortFilterProxyModel>
-
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
-    _connection = new DBConnection(this);
-    _typeWordModel  = new POS_Model(this);
+    _connection    = new DBConnection(this);
+    _typeOfSpeech  = new POS_Model(this);
+    _wordModel     = new Word_Model(this);
+    _sortModel     = new QSortFilterProxyModel(this);
 
-    ui->pos_view->setModel(_typeWordModel);
+    _sortModel->setSourceModel(_typeOfSpeech);
+
+    ui->pos_view->setModel(_sortModel);
+    ui->right_view->setModel(_wordModel);
 
 
     connect(ui->btn_connection, &QToolButton::clicked, this, &MainWindow::slConnectionDB);
@@ -30,17 +31,17 @@ MainWindow::~MainWindow()
 void MainWindow::slConnectionDB()
 {
     if (!_connection->exec()) {
-        _typeWordModel->setColumns({{"part_of_speech", "Часть речи"}});
+        _typeOfSpeech->setColumns({{"part_of_speech", "Часть речи"}});
         QString sql = "SELECT * FROM type_word ORDER BY id";
         qDebug() << sql;
-        _typeWordModel->setQuery(sql);
+        _typeOfSpeech->setQuery(sql);
         ui->pos_view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     }
 }
 
 void MainWindow::slSelectionItem()
 {
-    //    QModelIndexList selectionIndexes = ui->pos_view->
+
 }
 
 QList<long long> MainWindow::selectedIds()
@@ -57,4 +58,5 @@ QList<long long> MainWindow::selectedIds()
 
 QVariantHash MainWindow::getRecord(const QModelIndex &index)
 {
+    return _typeOfSpeech->getRow(_sortModel->mapToSource(index).row());
 }

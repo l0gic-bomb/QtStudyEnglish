@@ -8,7 +8,7 @@
 
 const QString MARKER = "marker";
 
-Word_Model::Word_Model(QObject *parent) : POS_Model(parent)
+Word_Model::Word_Model(QObject *parent) : POS_Model(parent), _insertMode(false)
 {
 }
 
@@ -23,8 +23,10 @@ void Word_Model::setTablesDescriptions(QList<TableDescription> &listDesc) noexce
     _listDesc = listDesc;
 
     foreach (const TableDescription& desc, _listDesc) {
+
         foreach (const QString& field, desc.keys)
             _keyColumns.insert(field, desc.name);
+
         foreach (const QString& field, desc.fields)
             _editColumns.insert(field, desc.name);
     }
@@ -77,6 +79,24 @@ bool Word_Model::setData(const QModelIndex &index, const QVariant &value, int ro
     QVariantHash hash = _data.value(index.row());
     QString field = _columnOrder.value(index.column());
     hash.insert(field, value);
+
+    if (!hash.contains(MARKER)) // Если строка уже есть в БД
+    {
+        if (!updateRow(hash, field))
+            return false;
+        _data.replace(index.row(), hash);
+        emit dataChanged(index, index, QVector <int>({Qt::EditRole,
+                                                      Qt::UserRole,
+                                                     }));
+        return true;
+    }
+    else
+        _data.replace(index.row(), hash);
+
+    emit dataChanged(index, index, QVector <int>({Qt::EditRole,
+                                                  Qt::UserRole,
+                                                 }));
+    return false;
 }
 
 Qt::ItemFlags Word_Model::flags(const QModelIndex &index) const
@@ -229,9 +249,7 @@ bool Word_Model::writeNewRow(QVariantHash &hash)
         for (int i = 0; i < record.count(); ++i)
             hash.insert(record.fieldName(i), record.value(i));
 
-
     }
-
     return true;
 }
 
@@ -263,7 +281,7 @@ bool Word_Model::removeRow(QVariantHash &hash)
         QSqlQuery query;
         query.prepare(strQuery);
         for (const QString& key : desc.keys)
-            query.bindValue(":" + key, strList.join(key));
+            query.bindValue(":" + key, hash.value(key));
 
         if (!query.exec()) {
             // add error
@@ -273,6 +291,51 @@ bool Word_Model::removeRow(QVariantHash &hash)
     }
 
     db.commit();
+    return true;
+}
+
+bool Word_Model::updateRow(const QVariantHash &hash, const QString &field)
+{
+    if (_listDesc.count() == 0)
+        return false;
+
+    QString destTable;
+    QStringList keys;
+    for (int i = 0; i < _listDesc.count(); ++i)
+    {
+        TableDescription desc = _listDesc.at(i);
+        if (desc.fields.contains(field))
+        {
+            destTable = desc.name;
+            keys = QStringList(desc.keys.toList());
+            break;
+        }
+    }
+    if (destTable.isEmpty())
+        return false;
+    if (keys.isEmpty())
+        return false;
+
+
+    QString strQuery = QString("UPDATE %table% SET %field% = :%field% WHERE %where%")
+            .replace("%table%", destTable).replace("%field%",field);
+
+    QStringList pairs;
+    for (const QString &str : keys)
+        pairs.append(str + "=:" + str);
+    strQuery.replace("%where%", pairs.join(" AND "));
+
+    QSqlQuery query;
+    query.prepare(strQuery);
+    for (const QString &str : keys)
+        query.bindValue(":" + str, hash.value(str));
+
+    query.bindValue(":" + field, hash.value(field));
+
+    if (!query.exec())
+        return false;
+
+
     return true;
 }
 
