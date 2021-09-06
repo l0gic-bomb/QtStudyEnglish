@@ -5,7 +5,6 @@
 
 #include <QDebug>
 
-
 DBConnection::DBConnection(QWidget *parent) :
     QDialog(parent), ui(new Ui::DBConnection)
 {

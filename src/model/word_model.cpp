@@ -86,7 +86,6 @@ bool Word_Model::setData(const QModelIndex &index, const QVariant &value, int ro
             return false;
         _data.replace(index.row(), hash);
         emit dataChanged(index, index, QVector <int>({Qt::EditRole,
-                                                      Qt::UserRole,
                                                      }));
         return true;
     }
@@ -94,7 +93,6 @@ bool Word_Model::setData(const QModelIndex &index, const QVariant &value, int ro
         _data.replace(index.row(), hash);
 
     emit dataChanged(index, index, QVector <int>({Qt::EditRole,
-                                                  Qt::UserRole,
                                                  }));
     return false;
 }
@@ -127,7 +125,7 @@ Qt::ItemFlags Word_Model::flags(const QModelIndex &index) const
     }
 
 
-    return  fl;
+    return fl;
 }
 
 bool Word_Model::insertRows(int row, int count, const QModelIndex &parent)

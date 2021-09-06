@@ -4,6 +4,16 @@
 #include <QDialog>
 #include <QtSql>
 
+/*!
+  \brief   Диалог для выбора БД
+  \author  Krymov A.O.
+  \version 1.0
+  \date    14.08.2021
+
+  Диалог предназначен для выбора БД и подключения к ней
+
+*/
+
 namespace Ui {
 class DBConnection;
 }

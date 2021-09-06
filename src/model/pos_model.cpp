@@ -133,7 +133,7 @@ QVariant POS_Model::headerData(int section, Qt::Orientation orientation, int rol
 Qt::ItemFlags POS_Model::flags(const QModelIndex &index) const
 {
     // block selectable more rows, only one row can be selectable
-    return (QAbstractItemModel::flags(index) | Qt::ItemIsSelectable) & ~Qt::ItemIsEditable;
+    return (QAbstractItemModel::flags(index) | Qt::ItemIsSelectable);
 }
 
 QVariant POS_Model::displayRole(const QModelIndex &index) const noexcept
