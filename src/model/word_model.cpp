@@ -204,7 +204,7 @@ bool Word_Model::writeNewRow(QVariantHash &hash)
     for (int i = 0; i < _listDesc.size(); ++i) {
         TableDescription currentDesc = _listDesc.at(i);
 
-        const QStringList columnsList  = currentDesc.fields.unite(currentDesc.keys).toList();
+        const QStringList columnsList; // = currentDesc.fields.unite(currentDesc.keys).toList();`
         const QString allColumnsString = columnsList.join(",");
 
         QString values;
@@ -305,7 +305,7 @@ bool Word_Model::updateRow(const QVariantHash &hash, const QString &field)
         if (desc.fields.contains(field))
         {
             destTable = desc.name;
-            keys = QStringList(desc.keys.toList());
+           // keys = QStringList(desc.keys.toList());
             break;
         }
     }

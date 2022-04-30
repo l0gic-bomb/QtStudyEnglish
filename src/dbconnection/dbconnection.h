@@ -11,7 +11,6 @@
   \date    14.08.2021
 
   Диалог предназначен для выбора БД и подключения к ней
-
 */
 
 namespace Ui {
@@ -26,17 +25,27 @@ public:
     explicit DBConnection(QWidget *parent = nullptr);
     ~DBConnection();
 
+    //! connect to DB
     void connectDB();
+    //! getter DB
     QSqlDatabase getDatabase() const noexcept;
 
 public slots:
+    //! Slot for selecting DB
     void slSelectFileDB();
+    //! Slot for accepting changes
     void slAcceptChanges();
+    //! Slot for canceling changed
     void slCancel();
+
+private slots:
+    //! Slot for creating DB
+    void slCreateDB();
 
 private:
     Ui::DBConnection  *ui;
 
+    QString mName;
     QString _path;
     QSqlDatabase _database;
 
