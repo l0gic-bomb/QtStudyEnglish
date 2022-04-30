@@ -10,7 +10,7 @@ DBConnection::DBConnection(QWidget *parent) :
     mName("qtstudyenglish.sqlite")
 {
     ui->setupUi(this);
-
+    ui->rbtn_words->hide();
     connect(ui->btn_selectdb, &QToolButton::clicked,     this, &DBConnection::slSelectFileDB);
     connect(ui->btn_accept,   &QAbstractButton::clicked, this, &DBConnection::slAcceptChanges);
     connect(ui->btn_cancel,   &QAbstractButton::clicked, this, &DBConnection::slCancel);
@@ -24,10 +24,10 @@ DBConnection::~DBConnection()
 
 void DBConnection::connectDB()
 {
-    _database = QSqlDatabase::addDatabase("QSQLITE");
-    _database.setDatabaseName(_path);
+    mDatabase = QSqlDatabase::addDatabase("QSQLITE");
+    mDatabase.setDatabaseName(mPath);
 
-    if (!_database.open())
+    if (!mDatabase.open())
         qDebug() << "Не удалось подключиться";
     else
         qDebug() << "Подключение успешно";
@@ -35,26 +35,27 @@ void DBConnection::connectDB()
 
 QSqlDatabase DBConnection::getDatabase() const noexcept
 {
-    return _database;
+    return mDatabase;
 }
 
 void DBConnection::slSelectFileDB()
 {
-    if (_path.isEmpty()) {
+    if (mPath.isEmpty()) {
         QString path = QFileDialog::getOpenFileName(this,
                                                     "Выбор базы данных",
                                                     mName,
                                                     "Файл БД SQLite (*.sqlite)",
                                                     nullptr);
         ui->le_path->setText(path);
-        _path = path;
+        mPath = path;
     } else
-        ui->le_path->setText(_path);
+        ui->le_path->setText(mPath);
 }
 
 void DBConnection::slAcceptChanges()
 {
     connectDB();
+    if (ui->rbtn_words->windowState())
     this->close();
 }
 
@@ -74,12 +75,23 @@ void DBConnection::slCreateDB()
     QFile file(pathToDB);
     if (file.open(QIODevice::WriteOnly | QIODevice::Append)) {
         ui->le_path->setText(pathToDB);
+        ui->rbtn_words->show();
+        createTable();
         file.close();
     }
     else
     {
         qDebug() << "Не создан файл БД";
     }
+}
+
+bool DBConnection::createTable()
+{
+
+    //! Записать запросы в отдельный файл
+    //! Запрсы создания таблиц
+    //! Запросы базовые данные
+    //!
 }
 
 

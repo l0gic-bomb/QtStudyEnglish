@@ -43,11 +43,15 @@ private slots:
     void slCreateDB();
 
 private:
+    //! creating db
+    bool createTable();
+
     Ui::DBConnection  *ui;
 
+
     QString mName;
-    QString _path;
-    QSqlDatabase _database;
+    QString mPath;
+    QSqlDatabase mDatabase;
 
 };
 

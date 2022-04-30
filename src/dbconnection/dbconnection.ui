@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>391</width>
-    <height>95</height>
+    <height>96</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -76,6 +76,17 @@
         <widget class="QPushButton" name="btn_cancel">
          <property name="text">
           <string>Отменить</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="QRadioButton" name="rbtn_words">
+         <property name="text">
+          <string>Добавить в БД базовые слова</string>
          </property>
         </widget>
        </item>
