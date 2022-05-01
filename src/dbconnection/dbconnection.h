@@ -20,6 +20,10 @@ class DBConnection;
 class DBConnection : public QDialog
 {
     Q_OBJECT
+    enum class queryType {
+        TABLES,
+        DEFAULT
+    };
 
 public:
     explicit DBConnection(QWidget *parent = nullptr);
@@ -44,11 +48,13 @@ private slots:
 
 private:
     //! creating db
-    void createTable();
+    void doingQuery(const queryType& type);
     //! read query from file
     QStringList readQuery(const QString& path);
     //! open database
     void openDB();
+    //! insertind default data
+    void insertDefaultWord();
 
     Ui::DBConnection  *ui;
 

@@ -3,6 +3,11 @@
 
 #include <QFileDialog>
 #include <QDebug>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    #include <QtCore/QTextCodec>
+#else
+    #include <QtCore5Compat/QTextCodec>
+#endif
 
 DBConnection::DBConnection(QWidget *parent) :
     QDialog(parent),
@@ -58,9 +63,8 @@ void DBConnection::slSelectFileDB()
 
 void DBConnection::slAcceptChanges()
 {
-    connectDB();
     if (ui->rbtn_words->isChecked())
-        createTable();
+        doingQuery(queryType::DEFAULT);
     this->close();
 }
 
@@ -91,7 +95,7 @@ void DBConnection::slCreateDB()
         mDatabase.setDatabaseName(mPath);
         ui->rbtn_words->show();
         openDB();
-        createTable();
+        doingQuery(queryType::TABLES);
     }
     else
     {
@@ -100,10 +104,14 @@ void DBConnection::slCreateDB()
     file.close();
 }
 
-void DBConnection::createTable()
+void DBConnection::doingQuery(const queryType& type)
 {
     const QString pathToProject = PRO_FILE_PWD;
-    const QString pathToQuery = pathToProject + QDir::separator() + "queries" + QDir::separator() + "create_tables.sql";
+    QString pathToQuery;
+    if (type == queryType::TABLES)
+        pathToQuery = pathToProject + QDir::separator() + "queries" + QDir::separator() + "create_tables.sql";
+    else if (type == queryType::DEFAULT)
+        pathToQuery = pathToProject + QDir::separator() + "queries" + QDir::separator() + "default_insert.sql";
     const QStringList queries = readQuery(pathToQuery);
     if (!queries.empty())
     {
@@ -127,8 +135,13 @@ QStringList DBConnection::readQuery(const QString &path)
         return QStringList();
     }
     data = file.readAll();
+    QString tmp = data;
+    data = tmp.toUtf8();
     QStringList queries;
     QString query;
+    //QTextCodec *codec = QTextCodec::codecForLocale();
+    //QTextCodec::setCodecForLocale(codec);
+
     for (const auto& elem : data)
     {
         if (QString escape{elem};
@@ -139,6 +152,7 @@ QStringList DBConnection::readQuery(const QString &path)
         else
         {
             query += elem;
+            query.toUtf8();
             queries.append(query);
             query.clear();
         }
@@ -155,6 +169,11 @@ void DBConnection::openDB()
     {
         qDebug() << "Подключение успешно";
     }
+}
+
+void DBConnection::insertDefaultWord()
+{
+
 }
 
 

@@ -1,0 +1,32 @@
+INSERT OR REPLACE INTO verbs VALUES (1,  'eat', 'ate', 'eatten', 'есть', 0);
+INSERT OR REPLACE INTO verbs VALUES (2,  'go', 'went', 'gone', 'идти', 0);
+INSERT OR REPLACE INTO verbs VALUES (3,  'do', 'did', 'done', 'делать', 0);
+INSERT OR REPLACE INTO verbs VALUES (4,  'make', 'made', 'make', 'делать', 0);
+INSERT OR REPLACE INTO verbs VALUES (5,  'come', 'came', 'come', 'приходить', 0);
+INSERT OR REPLACE INTO verbs VALUES (6,  'begin', 'began', 'begun', 'начинать', 0);
+INSERT OR REPLACE INTO verbs VALUES (7,  'buy', 'bought', 'bought', 'покупать', 0);
+INSERT OR REPLACE INTO verbs VALUES (8,  'fly', 'flew', 'flown', 'лететь', 0);
+INSERT OR REPLACE INTO verbs VALUES (9,  'build', 'built', 'built', 'строить', 0);
+INSERT OR REPLACE INTO verbs VALUES (10, 'cost', 'cost', 'cost', 'стоить', 0);
+
+INSERT OR REPLACE INTO nouns VALUES (1,  'name', 'имя', 0);
+INSERT OR REPLACE INTO nouns VALUES (2,  'orange', 'апельсин', 0);
+INSERT OR REPLACE INTO nouns VALUES (3,  'thing', 'вещь', 0);
+INSERT OR REPLACE INTO nouns VALUES (4,  'milk', 'молоко', 0);
+INSERT OR REPLACE INTO nouns VALUES (5,  'child', 'ребенок', 0);
+INSERT OR REPLACE INTO nouns VALUES (6,  'women', 'женщина', 0);
+INSERT OR REPLACE INTO nouns VALUES (7,  'man', 'мужчина', 0);
+INSERT OR REPLACE INTO nouns VALUES (8,  'job', 'работа', 0);
+INSERT OR REPLACE INTO nouns VALUES (9,  'dream', 'мечта', 0);
+INSERT OR REPLACE INTO nouns VALUES (10, 'price', 'цена', 0);
+
+INSERT OR REPLACE INTO adjectives VALUES (1,  'beatiful', 'красивый', 0);
+INSERT OR REPLACE INTO adjectives VALUES (2,  'angry', 'злой', 0);
+INSERT OR REPLACE INTO adjectives VALUES (3,  'clever', 'умный', 0);
+INSERT OR REPLACE INTO adjectives VALUES (4,  'smart', 'смешленный', 0);
+INSERT OR REPLACE INTO adjectives VALUES (5,  'friendly', 'дружелюбный', 0);
+INSERT OR REPLACE INTO adjectives VALUES (6,  'cheap', 'дешевый', 0);
+INSERT OR REPLACE INTO adjectives VALUES (7,  'calm', 'спокойный', 0);
+INSERT OR REPLACE INTO adjectives VALUES (8,  'clean', 'чистый', 0);
+INSERT OR REPLACE INTO adjectives VALUES (9,  'cold', 'холодный', 0);
+INSERT OR REPLACE INTO adjectives VALUES (10, 'hot', 'горячий', 0);
