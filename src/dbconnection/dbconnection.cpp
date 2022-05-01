@@ -3,6 +3,7 @@
 
 #include <QFileDialog>
 #include <QDebug>
+// TODO!!!
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     #include <QtCore/QTextCodec>
 #else
@@ -16,6 +17,7 @@ DBConnection::DBConnection(QWidget *parent) :
 {
     ui->setupUi(this);
     mDatabase = QSqlDatabase::addDatabase("QSQLITE");
+    ui->rbtn_words->hide();
 
     connect(ui->btn_selectdb, &QToolButton::clicked,     this, &DBConnection::slSelectFileDB);
     connect(ui->btn_accept,   &QAbstractButton::clicked, this, &DBConnection::slAcceptChanges);
@@ -28,18 +30,6 @@ DBConnection::~DBConnection()
     delete ui;
 }
 
-void DBConnection::connectDB()
-{
-   // mDatabase.setDatabaseName(mPath);
-
-  /* if (!mDatabase.open())
-        qDebug() << "Не удалось подключиться";
-    else
-    {
-        qDebug() << "Подключение успешно";
-    }*/
-}
-
 QSqlDatabase DBConnection::getDatabase() const noexcept
 {
     return mDatabase;
@@ -47,17 +37,13 @@ QSqlDatabase DBConnection::getDatabase() const noexcept
 
 void DBConnection::slSelectFileDB()
 {
-    if (mPath.isEmpty()) {
-        QString path = QFileDialog::getOpenFileName(this,
-                                                    "Выбор базы данных",
-                                                    mName,
-                                                    "Файл БД SQLite (*.sqlite)",
-                                                    nullptr);
-        ui->le_path->setText(path);
-        mPath = path;
-    } else
-        ui->le_path->setText(mPath);
-    ui->rbtn_words->hide();
+    mPath = QFileDialog::getOpenFileName(this, "Выбор базы данных",
+                                                mName,
+                                                "Файл БД SQLite (*.sqlite)",
+                                                nullptr);
+    ui->le_path->setText(mPath);
+    mDatabase.setDatabaseName(mPath);
+    openDB();
     ui->rbtn_words->setChecked(false);
 }
 
@@ -82,7 +68,7 @@ void DBConnection::slCreateDB()
     }
     mPath = dirDB.path() + QDir::separator() + mName;
     QFile file(mPath);
-    if (file.exists()) //! TODO обработка перезаписи БД
+    if (file.exists())
     {
         mDatabase.setDatabaseName(mPath);
         openDB();
@@ -139,6 +125,7 @@ QStringList DBConnection::readQuery(const QString &path)
     data = tmp.toUtf8();
     QStringList queries;
     QString query;
+    // TODO! Сохранение локали
     //QTextCodec *codec = QTextCodec::codecForLocale();
     //QTextCodec::setCodecForLocale(codec);
 
@@ -152,7 +139,7 @@ QStringList DBConnection::readQuery(const QString &path)
         else
         {
             query += elem;
-            query.toUtf8();
+           // query.toUtf8();
             queries.append(query);
             query.clear();
         }

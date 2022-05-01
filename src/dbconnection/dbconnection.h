@@ -29,8 +29,6 @@ public:
     explicit DBConnection(QWidget *parent = nullptr);
     ~DBConnection();
 
-    //! connect to DB
-    void connectDB();
     //! getter DB
     QSqlDatabase getDatabase() const noexcept;
 
