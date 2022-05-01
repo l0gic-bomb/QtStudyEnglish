@@ -44,7 +44,9 @@ private slots:
 
 private:
     //! creating db
-    bool createTable();
+    void createTable();
+    //! read query from file
+    QStringList readQuery(const QString& path);
 
     Ui::DBConnection  *ui;
 

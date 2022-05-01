@@ -24,3 +24,5 @@ FORMS += \
 
 RESOURCES += \
     src/res.qrc
+
+DEFINES += PRO_FILE_PWD=$$sprintf("\"\\\"%1\\\"\"", $$_PRO_FILE_PWD_)
