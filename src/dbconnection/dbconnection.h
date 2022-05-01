@@ -47,6 +47,8 @@ private:
     void createTable();
     //! read query from file
     QStringList readQuery(const QString& path);
+    //! open database
+    void openDB();
 
     Ui::DBConnection  *ui;
 

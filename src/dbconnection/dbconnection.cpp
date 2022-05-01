@@ -78,19 +78,19 @@ void DBConnection::slCreateDB()
     }
     mPath = dirDB.path() + QDir::separator() + mName;
     QFile file(mPath);
-    //if (file.exists()) //! TODO обработка перезаписи БД
-     //   return;
+    if (file.exists()) //! TODO обработка перезаписи БД
+    {
+        mDatabase.setDatabaseName(mPath);
+        openDB();
+        qDebug() << "База данных уже существует";
+        return;
+    }
 
     if (file.open(QIODevice::WriteOnly | QIODevice::Append)) {
         ui->le_path->setText(mPath);
         mDatabase.setDatabaseName(mPath);
         ui->rbtn_words->show();
-        if (!mDatabase.open())
-            qDebug() << "Не удалось подключиться";
-        else
-        {
-            qDebug() << "Подключение успешно";
-        }
+        openDB();
         createTable();
     }
     else
@@ -103,15 +103,14 @@ void DBConnection::slCreateDB()
 void DBConnection::createTable()
 {
     const QString pathToProject = PRO_FILE_PWD;
-    QString pathToQuery = pathToProject + QDir::separator() + "queries" + QDir::separator() + "create_tables.sql";
+    const QString pathToQuery = pathToProject + QDir::separator() + "queries" + QDir::separator() + "create_tables.sql";
     const QStringList queries = readQuery(pathToQuery);
     if (!queries.empty())
     {
         QSqlQuery query{mDatabase};
         for (const auto& strQuery : queries)
         {
-            bool result = query.exec(strQuery);
-            int tmp = 10;
+            query.exec(strQuery);
         }
     }
     else
@@ -128,15 +127,13 @@ QStringList DBConnection::readQuery(const QString &path)
         return QStringList();
     }
     data = file.readAll();
-    QString tmp = data;
     QStringList queries;
     QString query;
     for (const auto& elem : data)
     {
-        if (QString tmp{elem}; tmp == "\r" || tmp == "\n")
-        {
+        if (QString escape{elem};
+                escape == "\r" || escape == "\n")
             continue;
-        }
         else if (elem != ';')
             query += elem;
         else
@@ -148,6 +145,16 @@ QStringList DBConnection::readQuery(const QString &path)
     }
     file.close();
     return queries;
+}
+
+void DBConnection::openDB()
+{
+    if (!mDatabase.open())
+        qDebug() << "Не удалось подключиться";
+    else
+    {
+        qDebug() << "Подключение успешно";
+    }
 }
 
 
